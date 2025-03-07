@@ -1,9 +1,11 @@
-use std::sync::Arc;
-
-use gemini_rs::prelude::{GeminiClient, TokenProvider};
+use gemini_rs::prelude::{
+    Content, GeminiClient, GenerateContentRequest, GenerationConfig, Part, Role, TokenProvider,
+};
 use serde::{Deserialize, Serialize};
+use serde_json::{json};
 
 const SYSTEM_PROMPT: &str = "You are an expert proofreader. Analyze the provided text and identify any corrections needed to fix grammar or spelling. For each mistake, identify the startIndex, endIndex, the mistake type, report the correction and an explanation. Finally, provide the entire corrected string.";
+const MODEL: &str = "gemini-2.0-flash-001";
 
 #[derive(Serialize, Deserialize)]
 pub struct Proofreading {
@@ -12,7 +14,7 @@ pub struct Proofreading {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct  Correction {
+pub struct Correction {
     pub start_index: usize,
     pub end_index: usize,
     pub correction: String,
@@ -29,14 +31,68 @@ pub enum CorrectionType {
     Punctuation,
     #[serde(rename = "capitalization")]
     Capitalization,
-    #[serde(rename = "preposition")]    
+    #[serde(rename = "preposition")]
     Preposition,
-    #[serde(rename = "missing-words")]        
+    #[serde(rename = "missing-words")]
     MissingWords,
-    #[serde(rename = "grammar")]        
+    #[serde(rename = "grammar")]
     Grammar,
 }
 
-pub async fn proofread<T: TokenProvider + Clone>(vertex_client: GeminiClient<T>, input: &str) -> gemini_rs::error::Result<Proofreading> {
-    todo!()
+pub async fn proofread<T: TokenProvider + Clone>(
+    vertex_client: GeminiClient<T>,
+    input: &str,
+) -> gemini_rs::error::Result<Proofreading> {
+    let request = GenerateContentRequest {
+        system_instruction: Some(Content {
+            parts: Some(vec![Part::Text(SYSTEM_PROMPT.to_string())]),
+            role: None,
+        }),
+        generation_config: Some(GenerationConfig {
+            response_mime_type: Some("application/json".to_string()),
+            response_schema: Some(json!({
+              "type": "object",
+              "properties" :{
+                "corrected": {
+                  "type": "string"
+                },
+                "corrections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "startIndex": {
+                        "type": "integer"
+                      },
+                      "endIndex": {
+                        "type": "integer"
+                      },
+                      "correction": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": ["spelling", "punctuation", "capitalization", "preposition", "missing-words", "grammar"]
+                      },
+                      "explanation" : {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["startIndex", "endIndex", "correction", "type", "explanation"]
+                  }
+                }
+              }
+            })),
+            ..Default::default()
+        }),
+        contents: vec![Content {
+            parts: Some(vec![Part::Text(input.to_string())]),
+            role: Some(Role::User),
+        }],
+        ..Default::default()
+    };
+    let response = vertex_client.generate_content(&request, MODEL).await?;
+    let result = response.candidates[0].get_text().unwrap_or_default();
+    let result: Proofreading = serde_json::from_str(&result)?;
+    Ok(result)
 }
