@@ -2,29 +2,45 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✍️</text></svg>" />
+    <title>Proofreader API</title>
+    <link rel="stylesheet" href="style.css" />
+    <script>
+        if (!isSecureContext) location.protocol = 'https:';
+    </script>
+    <script src="script.js" type="module"></script>
+</head>
 
 <body>
-    <h1>Proofreader</h1>
-    <textarea id="input">
-Their was a littel boy, whom liked to runned threw the forrest. He always brung his dog, a small corgi whom's name was
-Spot. One day, they seen a big bear, whom looked hungery. The boy, whom was scared, told Spot to runned quick. They
-raned home, and never wented back to the forrest agen.
-    </textarea>
-    <button id="check_spelling">Check Spelling</button>
+    <h1>✍️ Proofreader API</h1>
+    <p class="error" hidden>
+        😕 Your browser doesn't support the Proofreader API. Using static
+        <a href="fake.json">mockup data</a>.
+    </p>
+    <p>
+        <label for="examples">Legend:</label>
+        <!-- prettier-ignore -->
+        <span id="examples">
+            Spelling Punctuation Capitalization Preposition Missing&nbsp;words Grammar
+        </span>
+    </p>
+    <form>
+        <!-- prettier-ignore -->
+        <div contenteditable="plaintext-only" spellcheck="false" tabindex="0">This are a radnom text with a few classic common, and typicla typso and grammar issus. the Proofreader API hopefuly finds them all. Knocking at wood and crossed.</div>
+        <button disabled type="submit">✍️ Proofread</button>
+    </form>
+    <div popover="auto">
+        <h1></h1>
+        <div>
+            <strong>Correction:</strong>
+            <button type="button" class="correction"></button>
+        </div>
+        <div><strong>Explanation:</strong> <span class="explanation"></span></div>
+    </div>
 </body>
-
-<script>
-    const textArea = document.getElementById('input');
-    const checkSpelling = document.getElementById('check_spelling');
-
-    checkSpelling.addEventListener('click', async () => {
-        const response = await fetch('/proofread', { method: 'POST', headers: { 'Content-type': 'application/json' }, body: JSON.stringify({ "input": textArea.textContent }) });
-        const data = await response.json();
-        console.log(data);
-    });
-</script>
 
 </html>
