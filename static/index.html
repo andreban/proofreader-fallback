@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+
+<body>
+    <h1>Proofreader</h1>
+    <textarea id="input">
+Their was a littel boy, whom liked to runned threw the forrest. He always brung his dog, a small corgi whom's name was
+Spot. One day, they seen a big bear, whom looked hungery. The boy, whom was scared, told Spot to runned quick. They
+raned home, and never wented back to the forrest agen.
+    </textarea>
+    <button id="check_spelling">Check Spelling</button>
+</body>
+
+<script>
+    const textArea = document.getElementById('input');
+    const checkSpelling = document.getElementById('check_spelling');
+
+    checkSpelling.addEventListener('click', async () => {
+        const response = await fetch('/proofread', { method: 'POST', headers: { 'Content-type': 'application/json' }, body: JSON.stringify({ "input": textArea.textContent }) });
+        const data = await response.json();
+        console.log(data);
+    });
+</script>
+
+</html>

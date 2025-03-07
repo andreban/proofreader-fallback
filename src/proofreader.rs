@@ -2,7 +2,7 @@ use gemini_rs::prelude::{
     Content, GeminiClient, GenerateContentRequest, GenerationConfig, Part, Role, TokenProvider,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::{json};
+use serde_json::json;
 
 const SYSTEM_PROMPT: &str = "You are an expert proofreader. Analyze the provided text and identify any corrections needed to fix grammar or spelling. For each mistake, identify the startIndex, endIndex, the mistake type, report the correction and an explanation. Finally, provide the entire corrected string.";
 const MODEL: &str = "gemini-2.0-flash-001";
@@ -15,7 +15,9 @@ pub struct Proofreading {
 
 #[derive(Serialize, Deserialize)]
 pub struct Correction {
+    #[serde(rename = "startIndex")]
     pub start_index: usize,
+    #[serde(rename = "endIndex")]
     pub end_index: usize,
     pub correction: String,
     #[serde(rename = "type")]
@@ -40,7 +42,7 @@ pub enum CorrectionType {
 }
 
 pub async fn proofread<T: TokenProvider + Clone>(
-    vertex_client: GeminiClient<T>,
+    vertex_client: &GeminiClient<T>,
     input: &str,
 ) -> gemini_rs::error::Result<Proofreading> {
     let request = GenerateContentRequest {
